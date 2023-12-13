@@ -56,7 +56,23 @@ public class TextView implements IView
 		
 		// Remove this and replace it with an actual representation of the board.
 		System.out.println("The board has " + nrRows + " rows and " + nrCols + " columns.");
-		
+
+		for (int i = 0; i < nrRows; i++) {
+			String row = "";
+			for (int j = 0; j < nrCols; j++) {
+				byte currPiece = model.getPieceIn(i, j);
+				if (currPiece == 0) {
+					row += "- ";
+				}
+				else if( currPiece == 1){
+					row += "X ";
+				}
+				else{
+					row += "O ";
+				}
+			}
+			System.out.println(row);
+		}
 		// Here is an example of how the output should look:
 		//_ _ O O _ _ X
 		//_ _ X O _ _ X
@@ -71,9 +87,9 @@ public class TextView implements IView
 		// Display menu options.
 		System.out.println("\n-------- MENU --------");
 		System.out.println("(1) Start new game");
-		System.out.println("(2) Resume saved game");
-		System.out.println("(3) Change game settings");
-		System.out.println("(4) Change players");
+		// System.out.println("(2) Resume saved game");
+		System.out.println("(2) Change game settings");
+		System.out.println("(3) Change players");
 		
 		// Request and return user input.
 		System.out.print("Select an option and confirm with enter or use any other key to quit: ");
@@ -106,8 +122,8 @@ public class TextView implements IView
 		System.out.println("\n-------- CHOOSE PLAYER " + playerId + " --------");
 		System.out.println("(1) HumanPlayer");
 		System.out.println("(2) RoundRobinPlayer");
-		System.out.println("(3) WinDetectingPlayer");
-		System.out.println("(4) CompetitivePlayer");
+		// System.out.println("(3) WinDetectingPlayer");
+		// System.out.println("(4) CompetitivePlayer");
 		
 		// Request user input.
 		System.out.print("Select an option and confirm with enter (invalid input will select a HumanPlayer): ");
@@ -117,8 +133,8 @@ public class TextView implements IView
 		switch(selectedPlayer)
 		{
 			case '2': return new RoundRobinPlayer();
-			case '3': return new WinDetectingPlayer();
-			case '4': return new CompetitivePlayer();
+			// case '3': return new WinDetectingPlayer();
+			// case '4': return new CompetitivePlayer();
 			default: return new HumanPlayer();
 		}
 	}

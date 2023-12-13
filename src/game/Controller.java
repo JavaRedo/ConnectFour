@@ -4,12 +4,6 @@ import interfaces.*;
 import players.HumanPlayer;
 import util.GameSettings;
 
-/**
- * This class controls the flow of the game.
- * It has been completed for you and must not be changed.
- *
- * @author David Symons
- */
 public class Controller
 {
 	// References to facilitate communication between model and view.
@@ -26,7 +20,7 @@ public class Controller
 	// The constructor creates model and view and loads default settings and players.
 	public Controller()
 	{
-		// Create model and vew.
+		// Create model and view.
 		this.model = new Model();
 		this.view = new TextView();
 		
@@ -61,6 +55,7 @@ public class Controller
 	private void startNewGame()
 	{
 		model.initNewGame(settings);
+		changePlayers();
 		startMatchLoop();
 	}
 	
@@ -91,6 +86,7 @@ public class Controller
 	private void startMatchLoop()
 	{
 		// Inform the players that a new game is about to begin.
+		
 		player1.prepareForGameStart(model, (byte)1);
 		player2.prepareForGameStart(model, (byte)2);
 		
@@ -126,9 +122,13 @@ public class Controller
 	// Returns the player whose turn it is.
 	private IPlayer getActivePlayerInstance()
 	{
-		if(model.getActivePlayer() == 1)
+		if(model.getActivePlayer() == 1){
 			return player1;
-		return player2;
+
+		}
+		else{
+			return player2;
+		}
 	}
 	
 	// Ask the given player to submit a move command.

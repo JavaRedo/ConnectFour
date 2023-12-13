@@ -2,6 +2,7 @@ package players;
 
 import interfaces.IModel;
 import interfaces.IPlayer;
+import util.GameSettings;
 
 /**
  * Implementing this player is an intermediate task.
@@ -15,6 +16,8 @@ public class RoundRobinPlayer implements IPlayer
 	// A reference to the model, which you can use to get information about
 	// the state of the game. Do not use this model to make any moves!
 	private IModel model;
+	private GameSettings settings;
+	private int move = 0;
 	
 	// The constructor is called when the player is selected from the game menu.
 	public RoundRobinPlayer()
@@ -29,6 +32,7 @@ public class RoundRobinPlayer implements IPlayer
 	public void prepareForGameStart(IModel model, byte playerId)
 	{
 		this.model = model;
+		this.settings = model.getGameSettings(); 
 		
 		// Extend this method if required.
 	}
@@ -38,6 +42,7 @@ public class RoundRobinPlayer implements IPlayer
 	public int chooseMove()
 	{
 		// Until you have implemented this player, it will always concede.
-		return IModel.CONCEDE_MOVE;
+
+		return move++%settings.nrCols;
 	}
 }

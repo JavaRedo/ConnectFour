@@ -29,7 +29,11 @@ public class HumanPlayer implements IPlayer
 	public int chooseMove()
 	{
 		// Until you have implemented this player, it will always concede.
-		return IModel.CONCEDE_MOVE;
+		System.out.println("Enter a valid move : ");
+
+		int chosenMove = util.InputUtil.readIntFromUser();
+		
+		return chosenMove;
 		
 		// Remove the above return statement, ask the user to enter a move and return that instead.
 		// The user should enter the index of the column into which they want to put their next piece.
