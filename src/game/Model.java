@@ -138,9 +138,10 @@ public class Model implements IModel
 	}
 	
 	private void updateGameStatus(int nextEmptySlot, int move) {
-		// checkForHorizontalStreak();
-		// checkForVerticalStreak();
-		checkForDiagonalStreak(nextEmptySlot,move);
+		
+		checkForHorizontalStreak(nextEmptySlot,move);
+		//checkForVerticalStreak(nextEmptySlot,move);
+		//checkForDiagonalStreak(nextEmptySlot,move);
 		checkForTie();
 	}
 
@@ -200,59 +201,49 @@ public class Model implements IModel
 		gameStatus = highestCount == settings.minStreakLength ? activePlayer : IModel.GAME_STATUS_ONGOING; 
 	}
 
-	private void checkForHorizontalStreak() {
-		for (int i = 0; i < nrRows; i++) {
-			int highestCount = 0;
-			for (int j = 0; j < nrCols; j++) {
-				int count = 0;
-				int currRowEle = board[i][j];
-				if(j+1 < nrCols){
-					int nextEle = board[i][j+1];
+	private void checkForHorizontalStreak(int nextEmptySlot,int move) {
+		int highestCount = 0;
+		//check for right horizontal streak
+		if((move + settings.minStreakLength > board.length) && (move - settings.minStreakLength < 0)){
+			gameStatus = IModel.GAME_STATUS_ONGOING;
+			return;
+		}
 
-					if (currRowEle == nextEle && nextEle != 0 && currRowEle != 0) {
-						count++;
-					}
-					else{
-						count = 0;
-					}
-				}
+		for (int i = 0; i < board.length-move; i++) {
+			int count = 0;
+			int currToken = board[nextEmptySlot][move+i]; 
 
-				if(count > highestCount){
+			if(currToken != activePlayer && count < settings.minStreakLength){
+				break;
+			}
+			else{
+				count++;
+				if(count > highestCount ){
 					highestCount = count;
 				}
 			}
+		}
 
-			if(highestCount == settings.minStreakLength){
-				gameStatus = activePlayer;
+		//check for left horizontal streak
+		for (int i = 0; i > 0; i--) {
+			int count = 0;
+			int currToken = board[nextEmptySlot][move+i];
+			
+			if(currToken != activePlayer && count < settings.minStreakLength){
+				break;
+			}
+			else{
+				count++;
+				if(count > highestCount ){
+					highestCount = count;
+				}
 			}
 		}
+
+		gameStatus = highestCount == settings.minStreakLength ? activePlayer : IModel.GAME_STATUS_ONGOING;
 	}
 
-	private void checkForVerticalStreak() {
-		for (int i = 0; i < nrRows; i++) {
-			int highestCount = 0;
-			for (int j = 0; j < nrCols; j++) {
-				int count = 0;
-				int currColEle = board[i][j];
-				if(i+1 < nrRows){
-					int nextEle = board[i+1][j];
+	private void checkForVerticalStreak(int nextEmptySlot,int move) {
 
-					if (currColEle == nextEle && nextEle != 0 && currColEle != 0) {
-						count++;
-					}
-					else{
-						count = 0;
-					}
-				}
-
-				if(count > highestCount){
-					highestCount = count;
-				}
-			}
-
-			if(highestCount == settings.minStreakLength){
-				gameStatus = activePlayer;
-			}
-		}
 	}
 }
