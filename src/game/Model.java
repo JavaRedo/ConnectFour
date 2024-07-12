@@ -9,12 +9,14 @@ public class Model implements IModel
 {
 	// A reference to the game settings from which you can retrieve the number
 	// of rows and columns the board has and how long the win streak is.
-	private GameSettings settings;
-	private int nrRows;
-	private int nrCols;
-	private byte board[][];
-	private byte activePlayer = 1;
-	private int gameStatus = 0; 
+	protected GameSettings settings;
+	protected int nrRows;
+	protected int nrCols;
+	protected byte board[][];
+	protected byte activePlayer = 1;
+	protected int gameStatus = 0; 
+	protected int moveCol;
+	protected int moveRow;
 
 	
 	// The default constructor.
@@ -66,12 +68,13 @@ public class Model implements IModel
 	// Actions the given move if it is valid. Otherwise, does nothing.
 	public void makeMove(int move)
 	{
+		this.moveCol = move;
+		int row = getNextEmptySlot(move);
+		moveRow = row;
 
-		int nextEmptySlot = getNextEmptySlot(move);
+		board[row][move] = activePlayer;
 
-		board[nextEmptySlot][move] = activePlayer;
-
-		updateGameStatus(nextEmptySlot,move);
+		updateGameStatus(row,move);
 
 		if(activePlayer == 1){
 			activePlayer = 2; 
@@ -127,7 +130,16 @@ public class Model implements IModel
 	// =========================================================================
 	
 	// You may find it useful to define some helper methods here.
-	private int getNextEmptySlot(int col) {
+	/**
+	 * returns the row index of the free slot after the 
+	 * top token in the stack
+	 * e.g
+	 * board
+	 * 0 2 1 1 0 nextEmptySlots for each column 
+	 * @param col column to check the next empty slot
+	 * @return nextEmptySlot
+	 */
+	protected int getNextEmptySlot(int col) {
 		for (int i = nrRows - 1; i > -1; i--) {
 			if(board[i][col] == 0){
 				return i;
@@ -136,16 +148,34 @@ public class Model implements IModel
 
 		return -1;
 	}
+
+	/**
+	 * method used to reset model
+	 * only use for testing purposes!!
+	 */
+	protected void resetModel(){
+		this.activePlayer = 1;
+		this.board = null;
+		this.gameStatus = 0;
+		this.nrCols = getGameSettings().nrCols;
+		this.nrRows = getGameSettings().nrRows;
+	}
 	
-	private void updateGameStatus(int nextEmptySlot, int move) {
-		
-		checkForHorizontalStreak(nextEmptySlot,move);
-		//checkForVerticalStreak(nextEmptySlot,move);
-		//checkForDiagonalStreak(nextEmptySlot,move);
+	/**
+	 * runs the vertical,horizontal and diagonal
+	 * streak detections and updates the game status 
+	 * accordingly
+	 * @param row
+	 * @param move
+	 */
+	protected void updateGameStatus(int row,int move) {
+
+		checkForHorizontalStreak(this.board,this.activePlayer,row,move);
+		checkForDiagonalStreak(this.board, this.activePlayer, row, move);
 		checkForTie();
 	}
 
-	private void checkForTie() {
+	protected void checkForTie() {
 		boolean columnsFull = true;
 		for (int i = 0; i < nrCols; i++) {
 			if(board[nrRows-1][i] != 0){
@@ -159,7 +189,16 @@ public class Model implements IModel
 		};
 	}
 
-	private void checkForDiagonalStreak(int nextEmptySlot, int move) {
+	/**
+	 * checks for a diagonal streak from the token placed by the active player
+	 * by checking all four diagonal directions
+	 * and updates the game status accordingly
+	 * @param activePlayer the active player that made the move
+	 * @param board the game board 
+	 * @param row row of the inserted token
+	 * @param move column of the inserted token 
+	 */
+	protected void checkForDiagonalStreak(byte[][] board, int activePlayer ,int row, int move) {
 
 		int[][] diagDirec = {{1,1},{-1,-1},{1,-1},{-1,1}};
 		int highestCount = 0;
@@ -170,16 +209,16 @@ public class Model implements IModel
 				int vecX = vector[0];
 				int vecY = vector[1];
 
-				for (int magnitude = 1; magnitude < 4; magnitude++) {
+				for (int magnitude = 1; magnitude < settings.minStreakLength; magnitude++) {
 
-					int nextX = nextEmptySlot + (vecY * magnitude);
+					int nextX = row + (vecY * magnitude);
 					int nextY = move + (vecX * magnitude);
 
 					try{
 						int nextSlot = board[nextX][nextY];
 						nextX = 0;
 						nextY = 0;
-						if(board[nextEmptySlot][move] == nextSlot){
+						if(board[row][move] == nextSlot){
 							count+=1;
 						}
 						else{
@@ -201,35 +240,75 @@ public class Model implements IModel
 		gameStatus = highestCount == settings.minStreakLength ? activePlayer : IModel.GAME_STATUS_ONGOING; 
 	}
 
-	private void checkForHorizontalStreak(int nextEmptySlot,int move) {
+	/**
+	 * checks for a horizontal streak from the token placed by the active player
+	 * by checking both a right and a left horizontal streak
+	 * and updates the game status accordingly
+	 * @param activePlayer the active player that made the move
+	 * @param board the game board 
+	 * @param row row of the inserted token
+	 * @param move column of the inserted token 
+	 */
+	protected void checkForHorizontalStreak(byte[][]board,int activePlayer,int row ,int move) {
 		int highestCount = 0;
 		//check for right horizontal streak
-		if((move + settings.minStreakLength > board.length) && (move - settings.minStreakLength < 0)){
+		if((move + settings.minStreakLength > settings.nrCols) && (move - settings.minStreakLength < 0)){
+			
+			gameStatus = IModel.GAME_STATUS_ONGOING;
+			return;
+		}
+		//check for right horizontal streak
+		int count = 0;
+		for (int i = 0; i < board.length-move; i++) {
+			int currToken = board[row][move+i]; 
+
+			if(currToken != activePlayer && count <= settings.minStreakLength){
+				break;
+			}
+			else{
+				count++;
+				if(count > highestCount ){
+					highestCount = count;
+				}
+			}
+		}
+
+		count = 0;
+		//check for left horizontal streak
+		for (int i = 0; i <= move; i++) {
+			int currToken = board[row][move-i];
+			
+			if(currToken != activePlayer && count <= settings.minStreakLength){
+				break;
+			}
+			else{
+				count++;
+				if(count > highestCount ){
+					highestCount = count;
+				}
+			}
+		}
+
+		//update game status
+		gameStatus = highestCount == settings.minStreakLength ? activePlayer : IModel.GAME_STATUS_ONGOING;
+	}
+
+	protected void checkForVerticalStreak(byte[][] board,int activePlayer,int row,int move) {
+		int highestCount = 0;
+		//handle out of boundary streaks
+		if((row + settings.minStreakLength > settings.nrRows) && (row - settings.minStreakLength < 0)){
+			
 			gameStatus = IModel.GAME_STATUS_ONGOING;
 			return;
 		}
 
-		for (int i = 0; i < board.length-move; i++) {
-			int count = 0;
-			int currToken = board[nextEmptySlot][move+i]; 
-
-			if(currToken != activePlayer && count < settings.minStreakLength){
-				break;
-			}
-			else{
-				count++;
-				if(count > highestCount ){
-					highestCount = count;
-				}
-			}
-		}
-
-		//check for left horizontal streak
-		for (int i = 0; i > 0; i--) {
-			int count = 0;
-			int currToken = board[nextEmptySlot][move+i];
+		//check for downward streak
+		int count = 0;
+		for (int i = row; i >= settings.nrRows; i++) {
 			
-			if(currToken != activePlayer && count < settings.minStreakLength){
+			int currToken = board[i][move]; 
+
+			if(currToken != activePlayer && count <= settings.minStreakLength){
 				break;
 			}
 			else{
@@ -240,10 +319,7 @@ public class Model implements IModel
 			}
 		}
 
+		//update game status
 		gameStatus = highestCount == settings.minStreakLength ? activePlayer : IModel.GAME_STATUS_ONGOING;
-	}
-
-	private void checkForVerticalStreak(int nextEmptySlot,int move) {
-
 	}
 }

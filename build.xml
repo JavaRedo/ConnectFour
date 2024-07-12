@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="">
+    <property name="build.dir" value="./build"/>
+    <property name="src.dir" value="./src"/>
+    <property name="lib.dir" value="./lib"/>
+    <property name="clean-build" value="yes"/>
+
+    <path id="build.classpath">
+        <pathelement location="${build.dir}"/>
+        <fileset dir="${lib.dir}" includes="**/*.jar"/>
+    </path>
+
+    <target name="init">
+        <mkdir dir="${build.dir}"></mkdir>
+    </target>
+
+
+    <target name="compile" depends="init">
+        <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="no">
+            <classpath refid="build.classpath"/>
+        </javac>
+    </target>
+
+    <target name="clean" if="${clean-build}">
+        <delete dir="${build.dir}"/>
+        <echo>cleaning!!</echo>
+    </target>
+
+    <target name="test">
+
+    </target>
+
+    <target name="build" depends="clean,compile,test">
+    </target>
+
+    <target name="run" depends="build">
+        <java classname="main.ConnectFour">
+            <classpath refid="build.classpath"/>
+        </java>
+    </target>
+    
+</project>

@@ -8,10 +8,9 @@ import game.Controller;
  *
  * @author David Symons
  */
-public class ConnectFour implements Runnable
+public class ConnectFour
 {
-	@Override
-	public void run() {
+	public static void main(String[] args) {
 		Controller controller = new Controller();
 		controller.startSession();
 	}
