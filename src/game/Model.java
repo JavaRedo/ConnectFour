@@ -304,8 +304,8 @@ public class Model implements IModel
 
 		//check for downward streak
 		int count = 0;
-		for (int i = row; i >= settings.nrRows; i++) {
-			
+		for (int i = row; i < settings.nrRows; i++) {
+
 			int currToken = board[i][move]; 
 
 			if(currToken != activePlayer && count <= settings.minStreakLength){
