@@ -1,5 +1,7 @@
 package util;
 
+import java.io.Serializable;
+
 /**
  * A simple structure containing the size of the board and
  * the minimum sequence/streak length required to win.
@@ -7,7 +9,7 @@ package util;
  *
  * @author David Symons
  */
-public final class GameSettings
+public final class GameSettings implements Serializable
 {
 	public final int nrRows;
 	public final int nrCols;

@@ -52,4 +52,5 @@ public interface IModel
 	// Returns a reference to the game settings, from which you can retrieve the
 	// number of rows and columns the board has and how long the win streak is.
 	public GameSettings getGameSettings();
+
 }

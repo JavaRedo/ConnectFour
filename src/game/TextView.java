@@ -47,6 +47,13 @@ public class TextView implements IView
 		}
 	}
 	
+	public void displayGameHeader()
+	{
+		System.out.println("Save : enter -2 when asked for a move");
+		System.out.println("Quit : enter -3 when asked for a move");
+	}
+
+
 	public void displayBoard(IModel model)
 	{
 		System.out.println("\n-------- BOARD --------");
@@ -87,7 +94,7 @@ public class TextView implements IView
 		// Display menu options.
 		System.out.println("\n-------- MENU --------");
 		System.out.println("(1) Start new game");
-		// System.out.println("(2) Resume saved game");
+		System.out.println("(2) Resume saved game");
 		System.out.println("(2) Change game settings");
 		System.out.println("(3) Change players");
 		
@@ -98,7 +105,7 @@ public class TextView implements IView
 	
 	public String requestSaveFileName()
 	{
-		System.out.println("\n-------- LOAD GAME --------");
+		System.out.println("\n-------- SAVE GAME --------");
 		System.out.print("File name (e.g. Save.txt): ");
 		return InputUtil.readStringFromUser();
 	}

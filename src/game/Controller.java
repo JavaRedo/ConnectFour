@@ -1,5 +1,7 @@
 package game;
 
+import java.io.*;
+
 import interfaces.*;
 import players.HumanPlayer;
 import util.GameSettings;
@@ -101,24 +103,84 @@ public class Controller
 			
 			// Say whose turn it is.
 			view.displayActivePlayer(model.getActivePlayer());
-			
+
+			view.displayGameHeader();
+
 			// Ask the active player to make a (valid) move.
 			int chosenMove = askForValidMove(activePlayer);
-			
+
+			// handle saving
+			boolean isSaved = handleSaving(chosenMove);
+
+			//handle quitting/resigning
+
+			if(isSaved){
+				break;
+			}
+			else{
 			// State which move the active player chose to make.
 			view.displayChosenMove(chosenMove);
 			
 			// Perform the chosen move.
 			model.makeMove(chosenMove);
-			
+	
 			// Show the updated state of the board.
 			view.displayBoard(model);
+			}
 		}
 		
 		// The game has ended. Announce the final game status i.e. the outcome.
 		view.displayGameStatus(gameStatus);
 	}
 	
+
+	private boolean handleSaving(int chosenMove) {
+		//check if the player wants to save 
+		if(!(chosenMove == -2)){
+			return false;
+		}
+
+		//start saving
+		String fileName = view.requestSaveFileName();
+		try {
+			saveGame(fileName);
+			return true;
+		} catch (Exception e) {
+			System.err.println(e);
+			return false;
+		}
+	}
+
+	public void saveGame(String fileName) throws FileNotFoundException,IOException{
+		FileOutputStream outputStream = null;
+		ObjectOutputStream objectStream = null;
+
+		createFile(fileName);
+
+		try {
+			outputStream = new FileOutputStream(fileName);
+			objectStream = new ObjectOutputStream(outputStream);
+
+			objectStream.writeObject(model);
+
+			System.out.println("saved game in" + fileName);
+
+		}
+		finally{
+			if(objectStream != null){
+				objectStream.close();
+			}
+		}
+	}
+
+	private void createFile(String fileName) throws IOException{
+		File saveFile = new File(fileName);
+
+		if (!saveFile.createNewFile()) {
+			System.err.println("file alredy exists");
+		}
+	}
+
 	// Returns the player whose turn it is.
 	private IPlayer getActivePlayerInstance()
 	{
@@ -143,6 +205,10 @@ public class Controller
 		{
 			// Ask the given/active player to submit a move.
 			chosenMove = activePlayer.chooseMove();
+
+			if(chosenMove == -2 || chosenMove == -3){
+				break;
+			}
 			
 			// Check the move's validity.
 			moveRejected = !model.isMoveValid(chosenMove);

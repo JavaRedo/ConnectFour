@@ -1,11 +1,15 @@
 package game;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.lang.reflect.Field;
 
 import interfaces.IModel;
-import interfaces.IPlayer;
+// import interfaces.IPlayer;
 import util.GameSettings;
 
 
-public class Model implements IModel
+public class Model implements IModel,Serializable
 {
 	// A reference to the game settings from which you can retrieve the number
 	// of rows and columns the board has and how long the win streak is.
@@ -17,6 +21,8 @@ public class Model implements IModel
 	protected int gameStatus = 0; 
 	protected int moveCol;
 	protected int moveRow;
+	protected boolean isSaving = false;
+	protected boolean isForfeit = false;
 
 	
 	// The default constructor.
@@ -41,9 +47,9 @@ public class Model implements IModel
 
 		board = new byte[nrRows][nrCols];
 
-		for (byte[] bs : board) {
-			for (byte b : bs) {
-				b = 0;
+		for (byte[] row : board) {
+			for (byte entry : row) {
+				entry = 0;
 			}
 		}
 	}
@@ -51,13 +57,44 @@ public class Model implements IModel
 	// Called when a game state should be loaded from the given file.
 	public void initSavedGame(String fileName)
 	{
-		// This is an advanced feature. If not attempting it, you can ignore this method.
+		ObjectInputStream objectStream= null;
+		FileInputStream fileStream = null;
+
+		try {
+			fileStream = new FileInputStream(fileName);
+
+			objectStream = new ObjectInputStream(fileStream);
+
+			Model modelObject = (Model) objectStream.readObject();
+
+			Field[] fields = modelObject.getClass().getDeclaredFields();
+
+			for (Field field : fields) {
+				this.getClass().getDeclaredField(field.getName()).set(this,field.get(modelObject));;
+			}
+
+
+		} catch (Exception e) {
+			System.err.println(e);
+		}
+
+		return;
 	}
 	
 	// Returns whether or not the passed in move is valid at this time.
 	public boolean isMoveValid(int move)
 	{
-		if((move < 0 || move > nrCols)  || getNextEmptySlot(move) == -1){
+
+		//check if move is 
+		if(move == -2){
+			setIsSaving(true);
+			return true;
+		}
+		else if(move == -3){
+			setIsForfeit(true);
+		}
+		//invalid move check
+		if((move < 0 || move > nrCols)  || getNextEmptySlot(move) == -1 ){
 			return false;
 		}
 		else{
@@ -65,9 +102,18 @@ public class Model implements IModel
 		}
 	}
 	
+	private void setIsForfeit(boolean isForfeit) {
+		this.isForfeit = isForfeit;
+	}
+
 	// Actions the given move if it is valid. Otherwise, does nothing.
 	public void makeMove(int move)
 	{
+
+		if(isSaving){
+			return;
+		}
+
 		this.moveCol = move;
 		int row = getNextEmptySlot(move);
 		moveRow = row;
@@ -125,6 +171,9 @@ public class Model implements IModel
 		return settings;
 	}
 	
+	public void setIsSaving(boolean isSaving){
+		this.isSaving = isSaving;
+	}
 	// =========================================================================
 	// ================================ HELPERS ================================
 	// =========================================================================
@@ -163,18 +212,34 @@ public class Model implements IModel
 	
 	/**
 	 * runs the vertical,horizontal and diagonal
-	 * streak detections and updates the game status 
-	 * accordingly
+	 * streak detections and updates the game status.
+	 * if no streak detected and game status didnt change it will 
+	 * check for a potential tie.
+
 	 * @param row
 	 * @param move
 	 */
 	protected void updateGameStatus(int row,int move) {
+		boolean isWin = false;
 
-		checkForHorizontalStreak(this.board,this.activePlayer,row,move);
-		checkForDiagonalStreak(this.board, this.activePlayer, row, move);
-		checkForTie();
+		
+			isWin = checkForHorizontalStreak(this.board,this.activePlayer,row,move,isWin);
+			isWin = checkForDiagonalStreak(this.board, this.activePlayer, row, move,isWin);
+			isWin = checkForVerticalStreak(this.board, activePlayer, row, move,isWin);
+
+		if(!isWin){
+			checkForTie();
+		}
 	}
 
+
+
+	/**
+	 * checks for a tie where no streak is present
+	 * and the board is full
+	 * Only checks if top row is full since that implies a tie given
+	 * all other streak detections are run before it 
+	 */
 	protected void checkForTie() {
 		boolean columnsFull = true;
 		for (int i = 0; i < nrCols; i++) {
@@ -196,9 +261,14 @@ public class Model implements IModel
 	 * @param activePlayer the active player that made the move
 	 * @param board the game board 
 	 * @param row row of the inserted token
-	 * @param move column of the inserted token 
+	 * @param move column of the inserted token
+	 * @param isWin boolean to track if a win has been found 
 	 */
-	protected void checkForDiagonalStreak(byte[][] board, int activePlayer ,int row, int move) {
+	protected boolean checkForDiagonalStreak(byte[][] board, int activePlayer ,int row, int move,boolean isWin) {
+
+		if(isWin){
+			return isWin;
+		}
 
 		int[][] diagDirec = {{1,1},{-1,-1},{1,-1},{-1,1}};
 		int highestCount = 0;
@@ -237,7 +307,14 @@ public class Model implements IModel
 				}
 		}
 		
-		gameStatus = highestCount == settings.minStreakLength ? activePlayer : IModel.GAME_STATUS_ONGOING; 
+		if(highestCount == settings.minStreakLength){
+			this.gameStatus = activePlayer;
+			return true;
+		}
+		else{
+			this.gameStatus = IModel.GAME_STATUS_ONGOING;
+			return false;
+		} 
 	}
 
 	/**
@@ -248,14 +325,19 @@ public class Model implements IModel
 	 * @param board the game board 
 	 * @param row row of the inserted token
 	 * @param move column of the inserted token 
+	 * @param isWin 
 	 */
-	protected void checkForHorizontalStreak(byte[][]board,int activePlayer,int row ,int move) {
+	protected boolean checkForHorizontalStreak(byte[][]board,int activePlayer,int row ,int move, boolean isWin) {
+		if(isWin){
+			return isWin;
+		}
+		
 		int highestCount = 0;
 		//check for right horizontal streak
 		if((move + settings.minStreakLength > settings.nrCols) && (move - settings.minStreakLength < 0)){
 			
 			gameStatus = IModel.GAME_STATUS_ONGOING;
-			return;
+			return false;
 		}
 		//check for right horizontal streak
 		int count = 0;
@@ -290,16 +372,37 @@ public class Model implements IModel
 		}
 
 		//update game status
-		gameStatus = highestCount == settings.minStreakLength ? activePlayer : IModel.GAME_STATUS_ONGOING;
+		if(highestCount == settings.minStreakLength){
+			this.gameStatus = activePlayer;
+			return true;
+		}
+		else{
+			this.gameStatus = IModel.GAME_STATUS_ONGOING;
+			return false;
+		}
 	}
 
-	protected void checkForVerticalStreak(byte[][] board,int activePlayer,int row,int move) {
+	/**
+	 * checks for a vertical streak from the token placed by the active player
+	 * by checking  for a downward vertical streak
+	 * and updates the game status accordingly
+	 * @param activePlayer the active player that made the move
+	 * @param board the game board 
+	 * @param row row of the inserted token
+	 * @param move column of the inserted token 
+	 * @param isWin 
+	 */
+	protected boolean checkForVerticalStreak(byte[][] board,int activePlayer,int row,int move, boolean isWin) {
+		if(isWin){
+			return isWin;
+		}
+		
 		int highestCount = 0;
 		//handle out of boundary streaks
 		if((row + settings.minStreakLength > settings.nrRows) && (row - settings.minStreakLength < 0)){
 			
 			gameStatus = IModel.GAME_STATUS_ONGOING;
-			return;
+			return false;
 		}
 
 		//check for downward streak
@@ -320,6 +423,16 @@ public class Model implements IModel
 		}
 
 		//update game status
-		gameStatus = highestCount == settings.minStreakLength ? activePlayer : IModel.GAME_STATUS_ONGOING;
+		//gameStatus = highestCount == settings.minStreakLength ? activePlayer : IModel.GAME_STATUS_ONGOING;
+
+		if(highestCount == settings.minStreakLength){
+			this.gameStatus = activePlayer;
+			return true;
+		}
+		else{
+			this.gameStatus = IModel.GAME_STATUS_ONGOING;
+			return false;
+		}
 	}
+
 }

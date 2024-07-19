@@ -1,4 +1,4 @@
-package Test.UnitTests.ModelTests.VerticalStreakTests;
+package UnitTests.ModelTests.VerticalStreakTests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -11,6 +11,7 @@ import util.GameSettings;
 public class VerticalValidStreakTest extends Model{
 
     private GameSettings testSettings;
+    boolean isWin = false;
 
     @Test
     public void checkForVerticalStreakTest1(){
@@ -31,7 +32,7 @@ public class VerticalValidStreakTest extends Model{
             {1,1,1,0,1,0,0},
         };
         int activePlayer = 2;
-        super.checkForVerticalStreak(board,activePlayer,1,0);
+        super.checkForVerticalStreak(board,activePlayer,1,0,this.isWin);
         assertEquals(IModel.GAME_STATUS_WIN_2, getGameStatus());
     }
 
@@ -55,7 +56,7 @@ public class VerticalValidStreakTest extends Model{
             {2,1,1,0,1,0,0},
         };
         int activePlayer = 2;
-        super.checkForVerticalStreak(board,activePlayer,2,0);
+        super.checkForVerticalStreak(board,activePlayer,2,0,this.isWin);
         assertEquals(IModel.GAME_STATUS_WIN_2, getGameStatus());
     }
 
@@ -79,7 +80,7 @@ public class VerticalValidStreakTest extends Model{
             {1,1,1,0,1,0,0},
         };
         int activePlayer = 2;
-        super.checkForVerticalStreak(board,activePlayer,1,0);
+        super.checkForVerticalStreak(board,activePlayer,1,0,this.isWin);
         assertEquals(IModel.GAME_STATUS_WIN_2, getGameStatus());
     }
 
@@ -104,7 +105,7 @@ public class VerticalValidStreakTest extends Model{
             {1,1,1,0,1,0,0},
         };
         int activePlayer = 2;
-        super.checkForVerticalStreak(board,activePlayer,1,0);
+        super.checkForVerticalStreak(board,activePlayer,1,0,this.isWin);
         assertEquals(IModel.GAME_STATUS_WIN_2, getGameStatus());
     }
 
@@ -129,7 +130,7 @@ public class VerticalValidStreakTest extends Model{
             {1,1,1,0,1,0,0},
         };
         int activePlayer = 2;
-        super.checkForVerticalStreak(board,activePlayer,1,0);
+        super.checkForVerticalStreak(board,activePlayer,1,0,this.isWin);
         assertEquals(IModel.GAME_STATUS_WIN_2, getGameStatus());
     }
 
@@ -154,7 +155,7 @@ public class VerticalValidStreakTest extends Model{
             {1,1,1,0,1,0,0},
         };
         int activePlayer = 2;
-        super.checkForVerticalStreak(board,activePlayer,1,0);
+        super.checkForVerticalStreak(board,activePlayer,1,0,this.isWin);
         assertEquals(IModel.GAME_STATUS_WIN_2, getGameStatus());
     }
 }

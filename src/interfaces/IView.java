@@ -17,6 +17,7 @@ public interface IView
 	public void displayActivePlayer(byte playerID);
 	public void displayGameStatus(byte gameStatus);
 	public void displayBoard(IModel model);
+	public void displayGameHeader();
 	
 	// Methods to request user input.
 	public char requestMenuSelection();

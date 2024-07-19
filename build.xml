@@ -4,6 +4,9 @@
     <property name="src.dir" value="./src"/>
     <property name="lib.dir" value="./lib"/>
     <property name="clean-build" value="yes"/>
+    <property name="tested-build" value="no"/>
+    <property name="reports.dir" value="./Test/reports"/>
+    <property name="test.src.dir" value="./Test/src"/>
 
     <path id="build.classpath">
         <pathelement location="${build.dir}"/>
@@ -12,6 +15,7 @@
 
     <target name="init">
         <mkdir dir="${build.dir}"></mkdir>
+        <mkdir dir="${reports.dir}"/>
     </target>
 
 
@@ -21,13 +25,38 @@
         </javac>
     </target>
 
-    <target name="clean" if="${clean-build}">
-        <delete dir="${build.dir}"/>
-        <echo>cleaning!!</echo>
+    <target name="compile-test" depends="compile" if="${tested-build}">
+        <javac srcdir="${test.src.dir}" destdir="${build.dir}" includeantruntime="no">
+            <classpath refid="build.classpath"/>
+        </javac>
     </target>
 
-    <target name="test">
+    <target name="test" depends="compile-test" >
+        <junit>
 
+            <classpath refid="build.classpath"/>
+            <formatter type="xml" />
+
+            <batchtest toDir="${reports.dir}">
+                <fileset dir="${test.src.dir}">
+                    <include name="**/*Test.java"></include>
+                </fileset>
+            </batchtest>
+        </junit>
+
+        <junitreport todir="${reports.dir}">
+            <fileset dir="${reports.dir}">
+                <include name="TEST-*.xml"/>
+            </fileset>
+            <report format="frames" todir="${reports.dir}/html"/>
+        </junitreport>
+    </target>
+
+
+    <target name="clean" if="${clean-build}">
+        <delete dir="${build.dir}"/>
+        <delete dir="${reports.dir}"/>
+        <echo>cleaning!!</echo>
     </target>
 
     <target name="build" depends="clean,compile,test">
